@@ -1,11 +1,4 @@
-# CSE330S
- Module 6 Group work
 
-
-## Name ID username
-
-#### _Tomson Li 488501 tomsonlee13_
-#### _Rain 487627 Rain-0219_
 
 
 ## Use Instruction
