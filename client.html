@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat Room</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/jquery.js"></script>
+    <script>
+        var socket = io();
+        var user;
+        var roomID;
+
+        function setUsername() {
+            socket.emit('setUsername', document.getElementById('name').value);
+        }
+        socket.on('userExists', function (data) {
+            document.getElementById('error-container').innerHTML = data;
+        });
+        socket.on('userSet', function (data) {
+            user = data.username;
+            roomID = data.roomID;
+            document.getElementById("register").style.display = "none";
+            document.getElementById("loggin").style.display = "block";
+            $('#userName').text(user);
+            $('#CurrentRoomID').text(roomID);
+            if (data.admin == 1) {
+                document.getElementById("adminOp").style.display = "block";
+            }
+        });
+        socket.on('sys', function (sysMsg, users) {
+            socket.on('newAdmin', function () {
+                document.getElementById("adminOp").style.display = "block"
+            });
+            var message = '<div class="sysMsg">' + sysMsg + '</div>';
+            $('#msglog').append(message);
+            $('#count').text(users.length);
+            $('#users').text(users);
+        });
+        $(function () {
+            $('#messageInput').keydown(function (e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    var msg = $(this).val();
+                    var room = $('#CurrentRoomID').text();
+                    $(this).val('');
+                    if (msg) {
+                        socket.emit('msg', { message: msg, user: user, roomID: room });
+                    }
+                }
+            });
+            $('#privateMessage').keydown(function (e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    var msg = $(this).val();
+                    var puid = $('#priUser').val();
+                    var room = $('#CurrentRoomID').text();
+                    console.log(puid);
+                    $(this).val('');
+                    if (msg) {
+                        socket.emit('primsg', { message: msg, user: user, puid: puid, roomID: room });
+                    }
+                }
+            });
+            $('#joinOrLeave').click(function () {
+                if ($(this).text() === 'Leave Room') {
+                    $(this).text('Join Lobby');
+                    var userName = $('#userName').text();
+                    var room = $('#CurrentRoomID').text();
+                    socket.emit('leave', { roomID: room, user: userName });
+                    var msg = 'You Have left chat rooms, rejoin to chat again!';
+                    document.getElementById("adminOp").style.display = "none";
+                    $('#msglog').append('<div class="sysMsg">' + msg + '</div>');
+                } else {
+                    $(this).text('Leave Room');
+                    var userName = $('#userName').text();
+                    var room = $('#CurrentRoomID').text();
+                    socket.emit('leave', { roomID: room, user: userName });
+                    socket.emit('join', { roomID: "lobby", user: userName });
+                    document.getElementById("adminOp").style.display = "none";
+                }
+
+            });
+            socket.on('newmsg', function (data) {
+                var msg = data.message;
+                if (msg.includes(" :)")) {
+                    msg = msg.replace(" :)", "😃")
+                }
+
+                if (msg.includes(" --")) {
+                    msg = msg.replace(" --", "😅")
+                }
+
+                if (msg.includes(" :(")) {
+                    msg = msg.replace(" :(", "🙃")
+                }
+
+                if (msg.includes(" :D")) {
+                    msg = msg.replace(" :D", "😊")
+                }
+
+                if (msg.includes(" :X")) {
+                    msg = msg.replace(" :X", "😵")
+                }
+
+                if (msg == ":)") {
+                    msg = "😃"
+                }
+                if (msg == "--") {
+                    msg = "😅"
+                }
+                if (msg == ":(") {
+                    msg = "🙃"
+                }
+                if (msg == ":D") {
+                    msg = "😊"
+                }
+                if (msg == ":X") {
+                    msg = "😵"
+                }
+                var message = '' +
+                    '<div class="message">' +
+                    '  <span class="user">' + data.user + ': </span>' +
+                    '  <span class="msg">' + msg + '</span>' +
+                    '</div>';
+                $('#msglog').append(message);
+
+                $('#msglog').scrollTop($('#msglog')[0].scrollHeight);
+            });
+            socket.on('newprimsg', function (data) {
+                var msg = data.message;
+                if (msg.includes(" :)")) {
+                    msg = msg.replace(" :)", "😃")
+                }
+
+                if (msg.includes(" --")) {
+                    msg = msg.replace(" --", "😅")
+                }
+
+                if (msg.includes(" :(")) {
+                    msg = msg.replace(" :(", "🙃")
+                }
+
+                if (msg.includes(" :D")) {
+                    msg = msg.replace(" :D", "😊")
+                }
+
+                if (msg.includes(" :X")) {
+                    msg = msg.replace(" :X", "😵")
+                }
+
+                if (msg == ":)") {
+                    msg = "😃"
+                }
+                if (msg == "--") {
+                    msg = "😅"
+                }
+                if (msg == ":(") {
+                    msg = "🙃"
+                }
+                if (msg == ":D") {
+                    msg = "😊"
+                }
+                if (msg == ":X") {
+                    msg = "😵"
+                }
+                var message = '' +
+                    '<div class="message">' +
+                    '<span class="user">Private message from: ' + data.user + ' To </span>' +
+                    '  <span class="user">You: </span>' +
+                    '  <span class="msg">' + msg + '</span>' +
+                    '</div>';
+                $('#msglog').append(message);
+
+                $('#msglog').scrollTop($('#msglog')[0].scrollHeight);
+            });
+        });
+        function addRoom() {
+            var roomPass = document.getElementById('roomPass').value;
+            var roomID = document.getElementById('roomID').value;
+            if (roomPass) {
+                if (roomID) {
+                    console.log("pass");
+                    var userName = $('#userName').text();
+                    var room = $('#CurrentRoomID').text();
+                    socket.emit('leave', { roomID: room, user: userName });
+                    socket.emit('joinPass', { roomID: roomID, user: user, roomPass: roomPass });
+                    document.getElementById('roomID').value = "";
+                    document.getElementById('roomPass').value = "";
+                }
+            }
+            else {
+                if (roomID) {
+                    console.log("no pass");
+                    var userName = $('#userName').text();
+                    var room = $('#CurrentRoomID').text();
+                    socket.emit('leave', { roomID: room, user: userName });
+                    socket.emit('join', { roomID: roomID, user: user, roomPass: roomPass });
+                    document.getElementById('roomID').value = "";
+                }
+            }
+        }
+
+        function kick() {
+            var kickID = document.getElementById('kickid').value;
+            if (kickID) {
+                console.log("kick!");
+                var userName = $('#userName').text();
+                var room = $('#CurrentRoomID').text();
+                socket.emit('kick', { user: userName, roomID: room, kickID: kickID });
+            }
+        }
+
+        function ban() {
+            var banID = document.getElementById('banid').value;
+            if (banID) {
+                console.log("ban!");
+                var userName = $('#userName').text();
+                var room = $('#CurrentRoomID').text();
+                socket.emit('ban', { user: userName, roomID: room, banID: banID });
+            }
+        }
+
+        function admin() {
+            var adminID = document.getElementById('adminid').value;
+            if (adminID) {
+                console.log("new admin!");
+                var userName = $('#userName').text();
+                var room = $('#CurrentRoomID').text();
+                socket.emit('admin', { user: userName, roomID: room, adminID: adminID });
+                document.getElementById("adminOp").style.display = "none";
+            }
+        }
+
+    </script>
+    <style>
+        #msglog,
+        #messageInput {
+            border: 1px solid #ccc;
+            width: 500px;
+            height: 350px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+
+        #messageInput {
+            height: 80px;
+        }
+
+        .message {
+            line-height: 22px;
+        }
+
+        .message .user {
+            padding-right: 5px;
+            padding-left: 5px;
+            color: brown;
+        }
+
+        .sysMsg {
+            color: #c1bfbf;
+            padding-right: 5px;
+            padding-left: 5px;
+            font-size: 12px;
+        }
+
+        #users {
+            width: 490px;
+            padding: 0 5px 5px;
+        }
+    </style>
+</head>
+
+
+<body>
+    <div id="register">
+        <div id="error-container"></div>
+        <input id="name" type="text" name="name" value="" placeholder="Enter your name!">
+        <button type="button" name="button" onclick="setUsername()">Let me chat!</button>
+    </div>
+    <div id="loggin" style="display: none">
+        <input type="text" id="roomID" placeholder="Room ID">
+        <input type="password" id="roomPass" placeholder="Room password (optional)">
+        <button type="button" name="button" onclick="addRoom()">Create/Join Room</button>
+        <br />
+        User Name: <span id="userName"></span> <br />
+        Room Name: <span id="CurrentRoomID"></span> <br />
+        Number of online users: <span id="count"></span> <br />
+        Online Users: <div id="users"></div>
+        <div id="msglog"></div>
+        <textarea name="message" id="messageInput" placeholder="General Message..."></textarea>
+        <br />
+        Press Enter to send
+        <button id="joinOrLeave" style="display: block">Leave Room</button>
+        <br />
+        <span>Send Private Message to: </span>
+        <input type="text" id="priUser" placeholder="User name...">
+        <br />
+        <textarea name="message" id="privateMessage" placeholder="Private Message..."></textarea>
+        <br />
+        Press Enter to send a Private message!
+        <br />
+
+        <span>If you want to use the emoji, type :) for 😃, -- for 😅, :( for 🙃, :D for 😊, :X for 😵</span>
+        <span>For example, you can type "hello :)" (a space between 'hello' and ':)') for hello😃</span>
+
+    </div>
+
+    <div id="adminOp" style="display: none">
+        <span>Kick: </span>
+        <input type="text" id="kickid" placeholder="Username to Kick...">
+        <button type="button" name="button" onclick="kick()">Kick</button>
+        <br />
+        <span>Ban: </span>
+        <input type="text" id="banid" placeholder="Username to Ban...">
+        <button type="button" name="button" onclick="ban()">Ban</button>
+        <br />
+        <span>Transfer Admin Privileges to: </span>
+        <input type="text" id="adminid" placeholder="New Administrator...">
+        <button type="button" name="button" onclick="admin()">Submit</button>
+    </div>
+
+</body>
+
+</html>
