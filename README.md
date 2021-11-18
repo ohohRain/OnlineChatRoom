@@ -22,3 +22,5 @@ We added a function to transfer the Administrator privilege to other people.
 We also give a functionality to use emoji within the text.
 If you want to use the emoji, type :) for 😃, -- for 😅, :( for 🙃, :D for 😊, :X for 😵
 For example, you can type "hello :)" (a space between 'hello' and ':)') for hello😃
+
+<img src="https://github.com/ohohRain/iOS-MovieApp/blob/main/Screen%20Shot%202021-11-17%20at%205.32.42%20PM.png" width="250" height="500">
